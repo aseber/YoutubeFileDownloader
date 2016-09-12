@@ -20,23 +20,117 @@ namespace FolderGenerator
 
         static void Main(string[] args)
         {
+            var files = DirectoryCrawler(@"S:\OneDrive\Personal Data\Audio\Unsorted Music");
 
-            var files = Directory.GetFiles(@"S:\OneDrive\Personal Data\Audio\Unsorted Music");
+            /*var tagFile2 = TagLib.File.Create(files[0]);
+            //Console.WriteLine("\"" + tagFile2.Tag.AlbumArtists[0] + "\"");
+            //tagFile2.Tag.AlbumArtists = new[] { "Test" };
+            tagFile2.Tag.Performers = new[] { "Test2" };
+            tagFile2.Save();*/
 
             foreach (var file in files)
             {
-                var fileName = Path.GetFileName(file);
-                var mainAuthors = findMainAuthors(file);
+                Console.WriteLine($"Data for: \"{Path.GetFileName(file)}\"");
 
-                var locationBase = @"S:\OneDrive\Personal Data\Audio\Unsorted Music\";
-                var oldLocation = $"{locationBase}{fileName}";
-                var newLocation = $"{locationBase}{mainAuthors}\\{fileName}";
-                Console.WriteLine($"\"{oldLocation}\" => \"{newLocation}\"");
-                File.Move(oldLocation, newLocation);
+                var tagFile = TagLib.File.Create(file);
+                var fileName = Path.GetFileName(file);
+
+                var title = tagFile.Tag.Title;
+
+                if (string.IsNullOrEmpty(title))
+                {
+                    Console.WriteLine($"\tTitle: \"{findSongName(file)}\"");
+                    tagFile.Tag.Title = findSongName(file);
+                } else
+                {
+                    Console.WriteLine($"\tTitle: already saved");
+                    Console.WriteLine($"\t\t{title}");
+                }
+
+                var artists = tagFile.Tag.AlbumArtists;
+
+                if (!artists.Any())
+                {
+                    Console.WriteLine("\tArtists: ");
+
+                    var authors = findMainAuthors(file);
+
+                    foreach (var author in authors)
+                    {
+                        Console.WriteLine($"\t\t\"{author}\"");
+                    }
+
+                    tagFile.Tag.AlbumArtists = authors;
+                } else
+                {
+                    Console.WriteLine("\tArtists: already saved");
+
+                    foreach (var artist in artists)
+                    {
+                        Console.WriteLine($"\t\t\"{artist}\"");
+                    }
+                }
+
+                var performers = tagFile.Tag.Performers;
+
+                if (!performers.Any())
+                {
+                    Console.WriteLine("\tPerformers: ");
+
+                    foreach (var performer in findFeaturedAuthors(file))
+                    {
+                        Console.WriteLine($"\t\t\"{performer}\"");
+                    }
+
+                    tagFile.Tag.Performers = findFeaturedAuthors(file);
+                }
+                else
+                {
+                    Console.WriteLine("\tPerformers: already saved");
+
+                    foreach (var performer in performers)
+                    {
+                        Console.WriteLine($"\t\t\"{performer}\"");
+                    }
+                }
+
+                //Console.WriteLine($"{tagFile.Tag.Title} - {tagFile.Tag.AlbumArtists.Length} - {tagFile.Tag.Performers.Length}");
+                //you can set properties with summaryproperties.nameOfProperty = value; for example
+                //Console.WriteLine($"\"{fileName}\" => \"{property}\"");
+
+                //tagFile.Save();
+
+                //after making changes, you need to use this line to save them
             }
 
             Console.WriteLine("Done");
             Console.ReadLine();
+        }
+
+        static IList<string> DirectoryCrawler(string directory)
+        {
+            var files = new List<string>();
+            DirectoryCrawler(directory, ref files);
+            return files;
+        }
+
+        static void DirectoryCrawler(string directory, ref List<string> files)
+        {
+            try
+            {
+                foreach (string subDirectory in Directory.GetDirectories(directory))
+                {
+                    foreach (string file in Directory.GetFiles(subDirectory))
+                    {
+                        files.Add(file);
+                    }
+                    DirectoryCrawler(subDirectory, ref files);
+                }
+            }
+            catch (Exception excpt)
+            {
+                Console.WriteLine(excpt.Message);
+            }
         }
 
         private static IEnumerable<string> getFileInformation(string[] files, Func<string, string> function)
@@ -202,7 +296,7 @@ namespace FolderGenerator
             return null;
         }
 
-        private static string findFeaturedAuthors(string file)
+        private static string[] findFeaturedAuthors(string file)
         {
             var fileName = Path.GetFileNameWithoutExtension(file);
 
@@ -210,34 +304,42 @@ namespace FolderGenerator
 
             if (data.Length == 2)
             {
-                var author = data[0].Trim();
-                if (author.Contains("feat."))
+                var authorString = data[0].Trim();
+                if (authorString.Contains("feat."))
                 {
-                    var featureIndex = author.IndexOf("feat.");
+                    var featureIndex = authorString.IndexOf("feat.");
 
                     var leadingCharacterIndex = featureIndex - 1;
-                    var leadingCharacter = author.ToCharArray()[leadingCharacterIndex];
+                    var leadingCharacter = authorString.ToCharArray()[leadingCharacterIndex];
+                    var beginningCharacterIndex = leadingCharacterIndex + 6;
 
                     if (leadingCharacter == '(')
                     {
-                        var trailingParenthesisIndex = author.IndexOf(')', featureIndex);
+                        var trailingParenthesisIndex = authorString.IndexOf(')', featureIndex);
 
-                        author = author.Remove(0, leadingCharacterIndex - 1);
-                        author = fixSpaces(author);
+                        authorString = authorString.Remove(0, beginningCharacterIndex);
+                        authorString = authorString.Remove(authorString.Length - 1);
+                        authorString = fixSpaces(authorString);
 
-                        return author;
+                        var authors = authorString.Split('&');
+                        for (int i = 0; i < authors.Length; i++)
+                        {
+                            authors[i] = fixSpaces(authors[i]);
+                        }
+
+                        return authors;
                     }
                 }
                 else
                 {
-                    return "";
+                    return new[] { "" };
                 }
             }
 
             return null;
         }
 
-        private static string findMainAuthors(string file)
+        private static string[] findMainAuthors(string file)
         {
             var fileName = Path.GetFileNameWithoutExtension(file);
 
@@ -245,28 +347,31 @@ namespace FolderGenerator
 
             if (data.Length == 2)
             {
-                var author = data[0].Trim();
-                if (author.Contains("feat."))
+                var authorString = data[0].Trim();
+                if (authorString.Contains("feat."))
                 {
-                    var featureIndex = author.IndexOf("feat.");
+                    var featureIndex = authorString.IndexOf("feat.");
 
                     var leadingCharacterIndex = featureIndex - 1;
-                    var leadingCharacter = author.ToCharArray()[leadingCharacterIndex];
+                    var leadingCharacter = authorString.ToCharArray()[leadingCharacterIndex];
 
                     if (leadingCharacter == '(')
                     {
-                        var trailingParenthesisIndex = author.IndexOf(')', featureIndex);
+                        var trailingParenthesisIndex = authorString.IndexOf(')', featureIndex);
                         var distance = trailingParenthesisIndex - leadingCharacterIndex + 1;
 
-                        author = author.Remove(leadingCharacterIndex, distance);
-                        author = fixSpaces(author);
-
-                        return author;
+                        authorString = authorString.Remove(leadingCharacterIndex, distance);
+                        authorString = fixSpaces(authorString);
                     }
-                } else
-                {
-                    return author;
                 }
+
+                var authors = authorString.Split('&');
+                for (int i = 0; i < authors.Length; i++)
+                {
+                    authors[i] = fixSpaces(authors[i]);
+                }
+
+                return authors;
             }
 
             return null;
