@@ -1,26 +1,18 @@
-﻿using HtmlAgilityPack;
-using NReco.VideoConverter;
-using System.Threading.Tasks;
-using System;
-using System.IO;
-using System.Linq;
-using VideoLibrary;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 
-namespace YoutubeFileDownloader
+namespace YoutubeFileDownloaderApi
 {
     class Program
     {
         static void Main()
         {
-            var videoDownloader = new VideoDownloader();
-            videoDownloader.DownloadVideosAsync(UrlList());
+            var videoDownloader = new YoutubeDownloader("..\\..\\Data\\Results\\");
+            videoDownloader.DownloadAsync(UrlList());
         }
 
-        static IEnumerable<VideoDownloader.DownloadableFile> UrlList()
+        static IEnumerable<YoutubeDownloader.DownloadableFile> UrlList()
         {
-            yield return new VideoDownloader.DownloadableFile("", "");
+            yield return new YoutubeDownloader.DownloadableFile("Coldplay - Everglow", "https://www.youtube.com/watch?v=P8jOQUsTU9o", YoutubeDownloader.Video);
         }
     }
 }
