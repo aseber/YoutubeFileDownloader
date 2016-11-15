@@ -15,13 +15,24 @@ namespace YoutubeFileDownloader
 
         public class DownloadableFile
         {
-            public string fileName { get; }
-            public string fileUrl { get; }
+            public enum DownloadStatus {
+
+                WAITING,
+                DOWNLOADING,
+                FINISHED,
+                FAILED
+
+            }
+
+            internal string fileName { get; }
+            internal string fileUrl { get; }
+            public DownloadStatus status { get; internal set; }
 
             public DownloadableFile(string fileName, string fileUrl)
             {
                 this.fileName = fileName;
                 this.fileUrl = fileUrl;
+                this.status = DownloadStatus.WAITING;
             }
         }
 
@@ -30,7 +41,6 @@ namespace YoutubeFileDownloader
         public void DownloadVideosAsync(IEnumerable<DownloadableFile> files, int concurrentDownloads = 4)
         {
             var semaphore = new SemaphoreSlim(concurrentDownloads);
-            var failedDownloads = new List<string>();
 
             var tasks = files.Select(async file =>
             {
@@ -38,12 +48,7 @@ namespace YoutubeFileDownloader
 
                 try
                 {
-                    var result = await DownloadVideoAsync(file);
-
-                    if (result != string.Empty)
-                    {
-                        failedDownloads.Add(result);
-                    }
+                    await DownloadVideoAsync(file);
                 }
                 finally
                 {
@@ -53,18 +58,11 @@ namespace YoutubeFileDownloader
 
             Task.WaitAll(tasks);
 
-            consoleWriter.WriteMessage("Finished all downloads");
-
-            foreach (var failedDownload in failedDownloads)
-            {
-                consoleWriter.WriteError($"\t{failedDownload} failed to download");
-            }
-
-            Console.ReadLine();
         }
 
-        public async Task<string> DownloadVideoAsync(DownloadableFile file)
+        public async Task DownloadVideoAsync(DownloadableFile file)
         {
+            file.status = DownloadableFile.DownloadStatus.DOWNLOADING;
             var url = file.fileUrl;
             var videoName = file.fileName;
             downloadIndex++;
@@ -84,15 +82,16 @@ namespace YoutubeFileDownloader
                     File.WriteAllBytes("..\\..\\Data\\Results\\" + fullVideoName, await video.GetBytesAsync());
                     ffMpeg.ConvertMedia("..\\..\\Data\\Results\\" + fullVideoName, "..\\..\\Data\\Results\\" + videoName + ".mp3", "mp3");
                     File.Delete("..\\..\\Data\\Results\\" + fullVideoName);
+
+                    file.status = DownloadableFile.DownloadStatus.FINISHED;
                 }
             }
             catch (Exception e)
             {
                 consoleWriter.WriteError($"Download failed ({downloadIndex}) ({videoName}) - {e.GetType()}");
-                return videoName;
             }
 
-            return string.Empty;
+            file.status = DownloadableFile.DownloadStatus.FAILED;
         }
     }
 }
