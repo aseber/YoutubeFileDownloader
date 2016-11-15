@@ -18,9 +18,9 @@ namespace YoutubeFileDownloader
             videoDownloader.DownloadVideosAsync(UrlList());
         }
 
-        static IEnumerable<Tuple<string, string, int>> UrlList()
+        static IEnumerable<VideoDownloader.DownloadableFile> UrlList()
         {
-            yield return Tuple.Create("", "", 1);
+            yield return new VideoDownloader.DownloadableFile("", "");
         }
     }
 }

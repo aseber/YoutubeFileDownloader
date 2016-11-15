@@ -11,20 +11,34 @@ namespace YoutubeFileDownloader
 {
     class VideoDownloader
     {
+        private int downloadIndex = 0;
+
+        public class DownloadableFile
+        {
+            public string fileName { get; }
+            public string fileUrl { get; }
+
+            public DownloadableFile(string fileName, string fileUrl)
+            {
+                this.fileName = fileName;
+                this.fileUrl = fileUrl;
+            }
+        }
+
         ConsoleWriter consoleWriter = new ConsoleWriter();
 
-        public void DownloadVideosAsync(IEnumerable<Tuple<string, string, int>> urlTuples, int concurrentDownloads = 4)
+        public void DownloadVideosAsync(IEnumerable<DownloadableFile> files, int concurrentDownloads = 4)
         {
             var semaphore = new SemaphoreSlim(concurrentDownloads);
             var failedDownloads = new List<string>();
 
-            var tasks = urlTuples.Select(async urlTuple =>
+            var tasks = files.Select(async file =>
             {
                 await semaphore.WaitAsync();
 
                 try
                 {
-                    var result = await DownloadVideoAsync(urlTuple);
+                    var result = await DownloadVideoAsync(file);
 
                     if (result != string.Empty)
                     {
@@ -49,11 +63,11 @@ namespace YoutubeFileDownloader
             Console.ReadLine();
         }
 
-        public async Task<string> DownloadVideoAsync(Tuple<string, string, int> urlTuple)
+        public async Task<string> DownloadVideoAsync(DownloadableFile file)
         {
-            var url = urlTuple.Item1;
-            var videoName = urlTuple.Item2;
-            var videoIndex = urlTuple.Item3;
+            var url = file.fileUrl;
+            var videoName = file.fileName;
+            downloadIndex++;
 
             try
             {
@@ -65,7 +79,7 @@ namespace YoutubeFileDownloader
                     var video = await youtube.GetVideoAsync(url);
                     var fullVideoName = video.FullName;
 
-                    consoleWriter.WriteMessage($"Starting Download ({videoIndex}) ({videoName})");
+                    consoleWriter.WriteMessage($"Starting Download ({downloadIndex}) ({videoName})");
 
                     File.WriteAllBytes("..\\..\\Data\\Results\\" + fullVideoName, await video.GetBytesAsync());
                     ffMpeg.ConvertMedia("..\\..\\Data\\Results\\" + fullVideoName, "..\\..\\Data\\Results\\" + videoName + ".mp3", "mp3");
@@ -74,7 +88,7 @@ namespace YoutubeFileDownloader
             }
             catch (Exception e)
             {
-                consoleWriter.WriteError($"Download failed ({videoIndex}) ({videoName}) - {e.GetType()}");
+                consoleWriter.WriteError($"Download failed ({downloadIndex}) ({videoName}) - {e.GetType()}");
                 return videoName;
             }
 
