@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace YoutubeDownloader.Properties {
+namespace YoutubeDownloaderGui.Properties {
     using System;
     
     

@@ -1,38 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using YoutubeFileDownloaderApi;
 
-namespace YoutubeDownloader.Gui
+namespace YoutubeDownloaderGui.Gui
 {
     public partial class MainWindow : Form
     {
         private FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-        private string rootDirectory;
+        private YoutubeDownloader downloader;
+        private string workingDirectory;
+        private BindingList<DownloadableFile> fileBinding = new BindingList<DownloadableFile>();
 
         public MainWindow(string workingDirectory)
         {
             InitializeComponent();
-            folderBrowserDialog.Description = "Select the root directory for your git repositories";
+            folderBrowserDialog.Description = "Select the directory that you want to save files to";
             folderBrowserDialog.ShowNewFolderButton = false;
             SetWorkingDirectory(workingDirectory);
+            downloadsList.DataSource = fileBinding;
         }
 
-        private void AddUrlForDownload(string url)
+        private async Task AddUrlForDownload(string url)
         {
-            downloadsList.Items.Add(url);
+            DownloadableFile file = new DownloadableFile(url, DownloadableFile.Audio);
+            fileBinding.Add(file);
+            await downloader.DownloadAsync(file);
         }
 
         public void SetWorkingDirectory(string workingDirectory)
         {
             Start.SetWorkingDirectory(workingDirectory);
-            rootDirectory = workingDirectory;
+            this.workingDirectory = workingDirectory;
             workingDirectoryTextBox.Text = workingDirectory;
+            downloader = new YoutubeDownloader(workingDirectory);
         }
 
         private void ChangeWorkingDirectory(object sender, EventArgs e)
@@ -42,7 +45,7 @@ namespace YoutubeDownloader.Gui
 
             if (dialogResult == DialogResult.OK)
             {
-                SetWorkingDirectory(folderBrowserDialog.SelectedPath);
+                SetWorkingDirectory(folderBrowserDialog.SelectedPath + "\\");
             }
         }
 

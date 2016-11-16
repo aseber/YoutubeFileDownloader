@@ -80,6 +80,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YoutubeFileDownloader\YoutubeFileDownloaderApi.csproj">
+      <Project>{c55af40b-e6dd-4c0c-82ab-942fb440c4d8}</Project>
+      <Name>YoutubeFileDownloaderApi</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

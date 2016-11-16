@@ -1,4 +1,4 @@
-﻿namespace YoutubeDownloader.Gui
+﻿namespace YoutubeDownloaderGui.Gui
 {
     partial class MainWindow
     {
@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.tableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.downloadsList = new System.Windows.Forms.CheckedListBox();
             this.workingDirectoryButton = new System.Windows.Forms.Button();
             this.workingDirectoryTextBox = new System.Windows.Forms.TextBox();
+            this.downloadsList = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -41,9 +41,9 @@
             this.tableLayoutPanel.ColumnCount = 2;
             this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 91.89744F));
             this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 8.102564F));
-            this.tableLayoutPanel.Controls.Add(this.downloadsList, 0, 1);
             this.tableLayoutPanel.Controls.Add(this.workingDirectoryButton, 1, 0);
             this.tableLayoutPanel.Controls.Add(this.workingDirectoryTextBox, 0, 0);
+            this.tableLayoutPanel.Controls.Add(this.downloadsList, 0, 1);
             this.tableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.FixedSize;
             this.tableLayoutPanel.Location = new System.Drawing.Point(0, 0);
@@ -56,21 +56,6 @@
             this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel.Size = new System.Drawing.Size(487, 275);
             this.tableLayoutPanel.TabIndex = 5;
-            // 
-            // downloadsList
-            // 
-            this.downloadsList.AllowDrop = true;
-            this.downloadsList.CheckOnClick = true;
-            this.tableLayoutPanel.SetColumnSpan(this.downloadsList, 2);
-            this.downloadsList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.downloadsList.FormattingEnabled = true;
-            this.downloadsList.Location = new System.Drawing.Point(3, 34);
-            this.downloadsList.Name = "downloadsList";
-            this.downloadsList.Size = new System.Drawing.Size(481, 238);
-            this.downloadsList.TabIndex = 0;
-            this.downloadsList.TabStop = false;
-            this.downloadsList.DragDrop += new System.Windows.Forms.DragEventHandler(this.UrlDropped);
-            this.downloadsList.DragEnter += new System.Windows.Forms.DragEventHandler(this.ValidateDragContent);
             // 
             // workingDirectoryButton
             // 
@@ -94,6 +79,21 @@
             this.workingDirectoryTextBox.TabIndex = 2;
             this.workingDirectoryTextBox.TabStop = false;
             // 
+            // downloadsList
+            // 
+            this.downloadsList.AllowDrop = true;
+            this.tableLayoutPanel.SetColumnSpan(this.downloadsList, 2);
+            this.downloadsList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.downloadsList.FormattingEnabled = true;
+            this.downloadsList.Location = new System.Drawing.Point(3, 34);
+            this.downloadsList.Name = "downloadsList";
+            this.downloadsList.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.downloadsList.Size = new System.Drawing.Size(481, 238);
+            this.downloadsList.TabIndex = 3;
+            this.downloadsList.UseTabStops = false;
+            this.downloadsList.DragDrop += new System.Windows.Forms.DragEventHandler(this.UrlDropped);
+            this.downloadsList.DragEnter += new System.Windows.Forms.DragEventHandler(this.ValidateDragContent);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -113,8 +113,8 @@
         #endregion
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel;
-        private System.Windows.Forms.CheckedListBox downloadsList;
         private System.Windows.Forms.Button workingDirectoryButton;
         private System.Windows.Forms.TextBox workingDirectoryTextBox;
+        private System.Windows.Forms.ListBox downloadsList;
     }
 }

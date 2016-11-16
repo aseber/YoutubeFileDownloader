@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace YoutubeFileDownloaderApi
 {
@@ -8,11 +9,12 @@ namespace YoutubeFileDownloaderApi
         {
             var videoDownloader = new YoutubeDownloader("..\\..\\Data\\Results\\");
             videoDownloader.DownloadAsync(UrlList());
+            Console.ReadLine();
         }
 
-        static IEnumerable<YoutubeDownloader.DownloadableFile> UrlList()
+        static IEnumerable<DownloadableFile> UrlList()
         {
-            yield return new YoutubeDownloader.DownloadableFile("Coldplay - Everglow", "https://www.youtube.com/watch?v=P8jOQUsTU9o", YoutubeDownloader.Video);
+            yield return new DownloadableFile("https://www.youtube.com/watch?v=P8jOQUsTU9o", DownloadableFile.Audio);
         }
     }
 }
