@@ -28,11 +28,11 @@ namespace FolderGenerator
             tagFile2.Tag.Performers = new[] { "Test2" };
             tagFile2.Save();*/
 
-            foreach (var file in files)
+            /*foreach (var file in files)
             {
                 Console.WriteLine($"Data for: \"{Path.GetFileName(file)}\"");
 
-                var tagFile = TagLib.File.Create(file);
+                //var tagFile = TagLib.File.Create(file);
                 var fileName = Path.GetFileName(file);
 
                 var title = tagFile.Tag.Title;
@@ -93,7 +93,6 @@ namespace FolderGenerator
                         Console.WriteLine($"\t\t\"{performer}\"");
                     }
                 }
-
                 //Console.WriteLine($"{tagFile.Tag.Title} - {tagFile.Tag.AlbumArtists.Length} - {tagFile.Tag.Performers.Length}");
                 //you can set properties with summaryproperties.nameOfProperty = value; for example
                 //Console.WriteLine($"\"{fileName}\" => \"{property}\"");
@@ -101,7 +100,7 @@ namespace FolderGenerator
                 //tagFile.Save();
 
                 //after making changes, you need to use this line to save them
-            }
+            }*/
 
             Console.WriteLine("Done");
             Console.ReadLine();

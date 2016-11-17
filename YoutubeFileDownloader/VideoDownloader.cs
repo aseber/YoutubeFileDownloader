@@ -1,42 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using VideoLibrary;
 
 namespace YoutubeFileDownloaderApi
 {
     public class YoutubeDownloader
     {
-        private readonly string downloadPath;
-        private int downloadIndex = 0;
 
-        public YoutubeDownloader(string downloadPath)
+        private BufferBlock<DownloadableFile> buffer = new BufferBlock<DownloadableFile>();
+        private readonly string downloadPath;
+        private int concurrentDownloads;
+        private int downloadIndex = 0;
+        private Thread workerThread;
+
+        public YoutubeDownloader(string downloadPath, int concurrentDownloads = 4)
         {
             this.downloadPath = downloadPath;
+            this.concurrentDownloads = concurrentDownloads;
+
+            workerThread = new Thread(GetThreadStart());
+            workerThread.Start();
         }
 
-        public void DownloadAsync(IEnumerable<DownloadableFile> files, int concurrentDownloads = 4)
+        ~YoutubeDownloader()
         {
-            var semaphore = new SemaphoreSlim(concurrentDownloads);
+            workerThread.Abort();
+        }
 
-            files.Select(async file =>
+        private ThreadStart GetThreadStart()
+        {
+            return async () =>
             {
-                await semaphore.WaitAsync();
+                var semaphore = new SemaphoreSlim(concurrentDownloads);
 
                 try
                 {
-                    await DownloadAsync(file);
+                    while (true)
+                    {
+                        var file = await buffer.ReceiveAsync();
+
+                        await semaphore.WaitAsync();
+
+                        try
+                        {
+                            await DoDownload(file);
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }
                 }
-                finally
+                catch (ThreadAbortException)
                 {
-                    semaphore.Release();
                 }
-            }).ToArray();
+            };
         }
 
-        public async Task DownloadAsync(DownloadableFile file)
+        public void DownloadAsync(IEnumerable<DownloadableFile> files)
+        {
+            foreach (var file in files)
+            {
+                buffer.Post(file);
+            }
+        }
+
+        public void DownloadAsync(DownloadableFile file)
+        {
+            buffer.Post(file);
+        }
+
+        public async Task DoDownload(DownloadableFile file)
         {
             var url = file.fileUrl;
             var videoName = file.videoName;
@@ -44,9 +83,11 @@ namespace YoutubeFileDownloaderApi
 
             try
             {
-                var youtube = YouTube.Default;
+                file.status = DownloadableFile.DownloadStatus.Downloading;
+                var videoStream = new MemoryStream(await file.videoHandle.GetBytesAsync());
+                // var videoStream = await file.videoHandle.StreamAsync(); // I would like to use this method, but StreamAsync currently doesn't work.
 
-                await file.handleDownload(file, downloadPath);
+                await file.DoSave(file, videoStream, downloadPath);
                 return;
             }
             catch (Exception e)

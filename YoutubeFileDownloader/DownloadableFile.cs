@@ -10,10 +10,9 @@ namespace YoutubeFileDownloaderApi
 {
     public class DownloadableFile : INotifyPropertyChanged
     {
-        public delegate Task SavingHandler(DownloadableFile file, string downloadPath);
-        //public delegate void StatusChangeCallback(DownloadableFile file);
+        public delegate Task SavingHandler(DownloadableFile file, Stream videoStream, string downloadPath);
 
-        public static readonly SavingHandler Audio = async (DownloadableFile file, string downloadPath) =>
+        public static readonly SavingHandler Audio = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
         {
             var videoName = file.videoName;
 
@@ -21,28 +20,19 @@ namespace YoutubeFileDownloaderApi
             string audioFileName = downloadPath + videoName + ".mp3";
 
             file.status = DownloadStatus.Downloading;
-
-            File.WriteAllBytes(videoFileName, await file.videoHandle.GetBytesAsync());
-
-            /*
-             
-            // I would like to use this method, but StreamAsync currently doesn't work.
-
-            var videoStream = await file.videoHandle.StreamAsync();
             var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write);
             await videoStream.CopyToAsync(fileStream);
              
-             */
-
             file.status = DownloadStatus.Converting;
-
             new FFMpegConverter().ConvertMedia(videoFileName, audioFileName, "mp3");
+            videoStream.Dispose();
+            fileStream.Dispose();
             File.Delete(videoFileName);
 
-            file.status = DownloadStatus.Finished;
+            file.status = DownloadStatus.Completed;
         };
 
-        public static readonly SavingHandler Video = async (DownloadableFile file, string downloadPath) =>
+        public static readonly SavingHandler Video = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
         {
             var videoName = file.videoName;
             var videoExtension = file.videoHandle.FileExtension;
@@ -50,20 +40,10 @@ namespace YoutubeFileDownloaderApi
             string videoFileName = downloadPath + videoName + videoExtension;
 
             file.status = DownloadStatus.Downloading;
-
-            File.WriteAllBytes(videoFileName, await file.videoHandle.GetBytesAsync());
-
-            /*
-             
-            // I would like to use this method, but StreamAsync currently doesn't work.
-
-            var videoStream = await file.videoHandle.StreamAsync();
             var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write);
             await videoStream.CopyToAsync(fileStream);
-             
-             */
 
-            file.status = DownloadStatus.Finished;
+            file.status = DownloadStatus.Completed;
         };
 
         public enum DownloadStatus
@@ -71,7 +51,7 @@ namespace YoutubeFileDownloaderApi
             Waiting,
             Downloading,
             Converting,
-            Finished,
+            Completed,
             Failed
         }
 
@@ -81,7 +61,7 @@ namespace YoutubeFileDownloaderApi
 
         internal readonly string videoName;
         internal readonly string fileUrl;
-        internal readonly SavingHandler handleDownload;
+        internal readonly SavingHandler DoSave;
         internal readonly YouTubeVideo videoHandle;
         private DownloadStatus m_status;
         public DownloadStatus status {
@@ -107,7 +87,7 @@ namespace YoutubeFileDownloaderApi
 
             videoName = GetVideoName(videoHandle);
             this.fileUrl = fileUrl;
-            handleDownload = downloadType;
+            DoSave = downloadType;
             status = DownloadStatus.Waiting;
         }
 
@@ -129,7 +109,22 @@ namespace YoutubeFileDownloaderApi
         {
             if (PropertyChanged != null)
             {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
+                if (Application.OpenForms.Count > 0)
+                {
+                    var form = Application.OpenForms[0];
+                    form.Invoke(new Action(() => PropertyChanged(this, new PropertyChangedEventArgs(info))));
+                }
+
+                /*var context = SynchronizationContext.Current ?? new SynchronizationContext();
+
+                                context.Send(s => PropertyChanged(this, new PropertyChangedEventArgs(info)), null);
+
+                                var asyncOp = AsyncOperationManager.CreateOperation(null);
+                                asyncOp.Post(() => PropertyChanged(this, new PropertyChangedEventArgs("")), PropertyChanged.Target);
+
+                                /*() => { PropertyChanged(this, new PropertyChangedEventArgs("")); }*/
+
+                //((BindingList<DownloadableFile>) PropertyChanged.Target)./*something here to get the form*/.Invoke(new Action(() => PropertyChanged(this, new PropertyChangedEventArgs(""))));
             }
         }
     }

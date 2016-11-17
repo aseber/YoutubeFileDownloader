@@ -23,11 +23,11 @@ namespace YoutubeDownloaderGui.Gui
             downloadsList.DataSource = fileBinding;
         }
 
-        private async Task AddUrlForDownload(string url)
+        private void AddUrlForDownload(string url)
         {
             DownloadableFile file = new DownloadableFile(url, DownloadableFile.Audio);
             fileBinding.Add(file);
-            await downloader.DownloadAsync(file);
+            downloader.DownloadAsync(file);
         }
 
         public void SetWorkingDirectory(string workingDirectory)
