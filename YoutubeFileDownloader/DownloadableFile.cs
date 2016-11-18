@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using VideoLibrary;
 
-namespace YoutubeFileDownloaderApi
+namespace YouTubeFileDownloaderApi
 {
     public class DownloadableFile : INotifyPropertyChanged
     {

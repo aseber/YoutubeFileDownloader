@@ -1,4 +1,4 @@
-﻿namespace YoutubeDownloaderGui.Gui
+﻿namespace YouTubeDownloader.Gui
 {
     partial class MainWindow
     {

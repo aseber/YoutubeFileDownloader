@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
-using YoutubeFileDownloaderApi;
+using YouTubeFileDownloaderApi;
 using System.Drawing;
 
-namespace YoutubeDownloaderGui.Gui
+namespace YouTubeDownloader.Gui
 {
     public partial class MainWindow : Form
     {

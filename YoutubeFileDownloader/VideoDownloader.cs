@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace YoutubeFileDownloaderApi
+namespace YouTubeFileDownloaderApi
 {
     public class YoutubeDownloader
     {
