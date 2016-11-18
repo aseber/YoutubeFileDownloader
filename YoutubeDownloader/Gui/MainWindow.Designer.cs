@@ -85,6 +85,7 @@
             this.downloadsList.AllowDrop = true;
             this.tableLayoutPanel.SetColumnSpan(this.downloadsList, 2);
             this.downloadsList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.downloadsList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.downloadsList.FormattingEnabled = true;
             this.downloadsList.Location = new System.Drawing.Point(3, 34);
             this.downloadsList.Name = "downloadsList";
@@ -92,6 +93,7 @@
             this.downloadsList.Size = new System.Drawing.Size(481, 238);
             this.downloadsList.TabIndex = 3;
             this.downloadsList.UseTabStops = false;
+            this.downloadsList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.GetDrawItemDelegate);
             this.downloadsList.DragDrop += new System.Windows.Forms.DragEventHandler(this.UrlDropped);
             this.downloadsList.DragEnter += new System.Windows.Forms.DragEventHandler(this.ValidateDragContent);
             // 

@@ -1,14 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoutubeFileDownloaderApi;
+using System.Drawing;
 
 namespace YoutubeDownloaderGui.Gui
 {
     public partial class MainWindow : Form
     {
+
+        private static readonly Dictionary<DownloadableFile.DownloadStatus, Color> StatusColorDictionary = new Dictionary<DownloadableFile.DownloadStatus, Color>()
+        {
+            {DownloadableFile.DownloadStatus.Waiting, Color.White },
+            {DownloadableFile.DownloadStatus.Downloading, Color.Yellow },
+            {DownloadableFile.DownloadStatus.Converting, Color.Yellow },
+            {DownloadableFile.DownloadStatus.Failed, Color.Red },
+            {DownloadableFile.DownloadStatus.Completed, Color.Green },
+        };
+
         private FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
         private YoutubeDownloader downloader;
         private string workingDirectory;
@@ -19,8 +29,36 @@ namespace YoutubeDownloaderGui.Gui
             InitializeComponent();
             folderBrowserDialog.Description = "Select the directory that you want to save files to";
             folderBrowserDialog.ShowNewFolderButton = false;
+            downloader = new YoutubeDownloader(workingDirectory);
             SetWorkingDirectory(workingDirectory);
             downloadsList.DataSource = fileBinding;
+        }
+
+        private void GetDrawItemDelegate(object sender, DrawItemEventArgs e)
+        {
+            e.DrawBackground();
+            Graphics g = e.Graphics;
+
+            var file = downloadsList.Items[e.Index] as DownloadableFile;
+
+            Color color;
+            StatusColorDictionary.TryGetValue(file.status, out color);
+
+            var itemHeight = downloadsList.ItemHeight;
+            var textDistance = itemHeight + 2;
+
+            var bgBounds = e.Bounds;
+            bgBounds.Width = itemHeight;
+
+            var textBounds = e.Bounds;
+            textBounds.X = textBounds.X + textDistance;
+            textBounds.Width = textBounds.Width - textDistance;
+
+            g.FillRectangle(new SolidBrush(color), bgBounds);
+            g.DrawRectangle(Pens.Black, bgBounds);
+            g.DrawString(file.ToString(), e.Font, Brushes.Black, textBounds);
+
+            e.DrawFocusRectangle();
         }
 
         private void AddUrlForDownload(string url)
@@ -46,12 +84,13 @@ namespace YoutubeDownloaderGui.Gui
             Start.SetWorkingDirectory(workingDirectory);
             this.workingDirectory = workingDirectory;
             workingDirectoryTextBox.Text = workingDirectory;
-            downloader = new YoutubeDownloader(workingDirectory);
+            downloader.downloadPath = workingDirectory;
         }
 
         private void ChangeWorkingDirectory(object sender, EventArgs e)
         {
             folderBrowserDialog.RootFolder = Environment.SpecialFolder.MyComputer;
+            folderBrowserDialog.SelectedPath = workingDirectory;
             var dialogResult = folderBrowserDialog.ShowDialog();
 
             if (dialogResult == DialogResult.OK)

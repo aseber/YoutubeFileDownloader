@@ -104,6 +104,8 @@ namespace YoutubeFileDownloaderApi
         {
             string fullVideoName = video.Title;
 
+            fullVideoName = string.Join("�", fullVideoName.Split(Path.GetInvalidFileNameChars()));
+            fullVideoName = string.Join("�", fullVideoName.Split(Path.GetInvalidPathChars()));
             // Add more to this to clean up the file name!
 
             return fullVideoName;

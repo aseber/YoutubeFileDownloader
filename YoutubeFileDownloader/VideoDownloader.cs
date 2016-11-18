@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using VideoLibrary;
 
 namespace YoutubeFileDownloaderApi
 {
     public class YoutubeDownloader
     {
 
-        private BufferBlock<DownloadableFile> buffer = new BufferBlock<DownloadableFile>();
-        private readonly string downloadPath;
+        private readonly BufferBlock<DownloadableFile> buffer = new BufferBlock<DownloadableFile>();
         private readonly int concurrentDownloads;
         private readonly SemaphoreSlim semaphore;
+        private readonly Thread[] workerThreads;
         private int downloadIndex = 0;
-        private Thread[] workerThreads;
+        public string downloadPath { get; set; }
+
 
         public YoutubeDownloader(string downloadPath, int concurrentDownloads = 4)
         {
@@ -77,7 +76,7 @@ namespace YoutubeFileDownloaderApi
         {
             foreach (var file in files)
             {
-                buffer.Post(file);
+                DownloadAsync(file);
             }
         }
 
