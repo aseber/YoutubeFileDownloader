@@ -14,30 +14,41 @@ namespace YoutubeFileDownloaderApi
 
         private BufferBlock<DownloadableFile> buffer = new BufferBlock<DownloadableFile>();
         private readonly string downloadPath;
-        private int concurrentDownloads;
+        private readonly int concurrentDownloads;
+        private readonly SemaphoreSlim semaphore;
         private int downloadIndex = 0;
-        private Thread workerThread;
+        private Thread[] workerThreads;
 
         public YoutubeDownloader(string downloadPath, int concurrentDownloads = 4)
         {
             this.downloadPath = downloadPath;
             this.concurrentDownloads = concurrentDownloads;
+            semaphore = new SemaphoreSlim(concurrentDownloads);
 
-            workerThread = new Thread(GetThreadStart());
-            workerThread.Start();
+            workerThreads = new Thread[concurrentDownloads];
+
+            for (int i = 0; i < concurrentDownloads; i++)
+            {
+                var workerThread = new Thread(GetThreadStart());
+                workerThread.Name = "VideoDownloader Worker Thread (" + base.ToString() + ") #" + i;
+                workerThread.Start();
+                workerThreads[i] = workerThread;
+            }
+
         }
 
         ~YoutubeDownloader()
         {
-            workerThread.Abort();
+            for (int i = 0; i < concurrentDownloads; i++)
+            {
+                workerThreads[i].Abort();
+            }
         }
 
         private ThreadStart GetThreadStart()
         {
             return async () =>
             {
-                var semaphore = new SemaphoreSlim(concurrentDownloads);
-
                 try
                 {
                     while (true)
@@ -84,10 +95,13 @@ namespace YoutubeFileDownloaderApi
             try
             {
                 file.status = DownloadableFile.DownloadStatus.Downloading;
-                var videoStream = new MemoryStream(await file.videoHandle.GetBytesAsync());
-                // var videoStream = await file.videoHandle.StreamAsync(); // I would like to use this method, but StreamAsync currently doesn't work.
 
-                await file.DoSave(file, videoStream, downloadPath);
+                //using (var videoStream = await file.videoHandle.StreamAsync()) // I would like to use this method, but StreamAsync currently doesn't work.
+                using (var videoStream = new MemoryStream(await file.videoHandle.GetBytesAsync()))
+                {
+                    await file.DoSave(file, videoStream, downloadPath);
+                }
+                
                 return;
             }
             catch (Exception e)

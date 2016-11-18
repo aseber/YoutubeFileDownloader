@@ -20,13 +20,14 @@ namespace YoutubeFileDownloaderApi
             string audioFileName = downloadPath + videoName + ".mp3";
 
             file.status = DownloadStatus.Downloading;
-            var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write);
-            await videoStream.CopyToAsync(fileStream);
-             
+
+            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
+            {
+                await videoStream.CopyToAsync(fileStream);
+            }
+
             file.status = DownloadStatus.Converting;
-            new FFMpegConverter().ConvertMedia(videoFileName, audioFileName, "mp3");
-            videoStream.Dispose();
-            fileStream.Dispose();
+            await Task.Factory.StartNew(() => { new FFMpegConverter().ConvertMedia(videoFileName, audioFileName, "mp3"); } );
             File.Delete(videoFileName);
 
             file.status = DownloadStatus.Completed;
@@ -40,8 +41,11 @@ namespace YoutubeFileDownloaderApi
             string videoFileName = downloadPath + videoName + videoExtension;
 
             file.status = DownloadStatus.Downloading;
-            var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write);
-            await videoStream.CopyToAsync(fileStream);
+
+            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
+            {
+                await videoStream.CopyToAsync(fileStream);
+            }
 
             file.status = DownloadStatus.Completed;
         };

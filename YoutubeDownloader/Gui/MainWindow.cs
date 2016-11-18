@@ -25,7 +25,18 @@ namespace YoutubeDownloaderGui.Gui
 
         private void AddUrlForDownload(string url)
         {
-            DownloadableFile file = new DownloadableFile(url, DownloadableFile.Audio);
+            DownloadableFile file;
+
+            try
+            {
+                file = new DownloadableFile(url, DownloadableFile.Audio);
+            }
+            catch (SystemException)
+            {
+                MessageBox.Show("Are you sure the video resided on YouTube?", "Error downloading file", MessageBoxButtons.OK);
+                return;
+            }
+
             fileBinding.Add(file);
             downloader.DownloadAsync(file);
         }
