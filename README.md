@@ -2,7 +2,7 @@
 
 This program wraps a c# video downloading library and allows the user to download multiple videos from YouTube simultaneously.
 
-![](http://imgur.com/Ysb2mIa)
+![](http://imgur.com/Ysb2mIa.png)
 
 ## How to install the application
 To use the application, simply install the compiled project inside the "install" folder.
