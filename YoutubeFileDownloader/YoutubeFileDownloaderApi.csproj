@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="DownloadableFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaveHandlerFactory.cs" />
     <Compile Include="VideoDownloader.cs" />
   </ItemGroup>
   <ItemGroup>

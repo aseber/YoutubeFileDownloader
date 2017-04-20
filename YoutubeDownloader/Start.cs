@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Windows.Forms;
 using YouTubeDownloader.Gui;
 

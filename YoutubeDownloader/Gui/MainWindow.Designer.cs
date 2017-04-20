@@ -38,32 +38,33 @@
             // 
             // tableLayoutPanel
             // 
-            this.tableLayoutPanel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.tableLayoutPanel.AutoSize = true;
             this.tableLayoutPanel.BackColor = System.Drawing.SystemColors.Control;
             this.tableLayoutPanel.ColumnCount = 2;
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 91.89744F));
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 8.102564F));
+            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel.Controls.Add(this.workingDirectoryButton, 1, 0);
             this.tableLayoutPanel.Controls.Add(this.workingDirectoryTextBox, 0, 0);
             this.tableLayoutPanel.Controls.Add(this.downloadsList, 0, 1);
+            this.tableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.FixedSize;
             this.tableLayoutPanel.Location = new System.Drawing.Point(0, 0);
-            this.tableLayoutPanel.Margin = new System.Windows.Forms.Padding(2);
+            this.tableLayoutPanel.Margin = new System.Windows.Forms.Padding(4);
             this.tableLayoutPanel.Name = "tableLayoutPanel";
             this.tableLayoutPanel.RowCount = 2;
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.54545F));
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 89.45454F));
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel.Size = new System.Drawing.Size(487, 275);
+            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel.Size = new System.Drawing.Size(974, 529);
             this.tableLayoutPanel.TabIndex = 5;
             // 
             // workingDirectoryButton
             // 
-            this.workingDirectoryButton.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.workingDirectoryButton.Location = new System.Drawing.Point(450, 3);
+            this.workingDirectoryButton.AutoSize = true;
+            this.workingDirectoryButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.workingDirectoryButton.Location = new System.Drawing.Point(920, 6);
+            this.workingDirectoryButton.Margin = new System.Windows.Forms.Padding(6);
             this.workingDirectoryButton.Name = "workingDirectoryButton";
-            this.workingDirectoryButton.Size = new System.Drawing.Size(34, 22);
+            this.workingDirectoryButton.Size = new System.Drawing.Size(48, 28);
             this.workingDirectoryButton.TabIndex = 1;
             this.workingDirectoryButton.Text = "...";
             this.workingDirectoryButton.UseVisualStyleBackColor = true;
@@ -71,27 +72,29 @@
             // 
             // workingDirectoryTextBox
             // 
-            this.workingDirectoryTextBox.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.workingDirectoryTextBox.Cursor = System.Windows.Forms.Cursors.Default;
-            this.workingDirectoryTextBox.Location = new System.Drawing.Point(3, 4);
+            this.workingDirectoryTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.workingDirectoryTextBox.Location = new System.Drawing.Point(6, 6);
+            this.workingDirectoryTextBox.Margin = new System.Windows.Forms.Padding(6);
             this.workingDirectoryTextBox.MaxLength = 260;
             this.workingDirectoryTextBox.Name = "workingDirectoryTextBox";
             this.workingDirectoryTextBox.ReadOnly = true;
-            this.workingDirectoryTextBox.Size = new System.Drawing.Size(441, 20);
+            this.workingDirectoryTextBox.Size = new System.Drawing.Size(902, 31);
             this.workingDirectoryTextBox.TabIndex = 2;
             this.workingDirectoryTextBox.TabStop = false;
             // 
             // downloadsList
             // 
             this.downloadsList.AllowDrop = true;
-            this.downloadsList.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.tableLayoutPanel.SetColumnSpan(this.downloadsList, 2);
+            this.downloadsList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.downloadsList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.downloadsList.FormattingEnabled = true;
-            this.downloadsList.Location = new System.Drawing.Point(3, 31);
+            this.downloadsList.Location = new System.Drawing.Point(6, 46);
+            this.downloadsList.Margin = new System.Windows.Forms.Padding(6);
             this.downloadsList.Name = "downloadsList";
             this.downloadsList.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.downloadsList.Size = new System.Drawing.Size(481, 240);
+            this.downloadsList.Size = new System.Drawing.Size(962, 477);
             this.downloadsList.TabIndex = 3;
             this.downloadsList.UseTabStops = false;
             this.downloadsList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.GetDrawItemDelegate);
@@ -100,13 +103,14 @@
             // 
             // MainWindow
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(487, 275);
+            this.ClientSize = new System.Drawing.Size(974, 529);
             this.Controls.Add(this.tableLayoutPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
+            this.Margin = new System.Windows.Forms.Padding(6);
+            this.MinimumSize = new System.Drawing.Size(1000, 600);
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "YouTube Downloader";
@@ -114,6 +118,7 @@
             this.tableLayoutPanel.ResumeLayout(false);
             this.tableLayoutPanel.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 

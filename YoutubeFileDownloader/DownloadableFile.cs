@@ -5,51 +5,12 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VideoLibrary;
+using static YouTubeFileDownloaderApi.SaveHandlerFactory;
 
 namespace YouTubeFileDownloaderApi
 {
     public class DownloadableFile : INotifyPropertyChanged
     {
-        public delegate Task SavingHandler(DownloadableFile file, Stream videoStream, string downloadPath);
-
-        public static readonly SavingHandler Audio = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
-        {
-            var videoName = file.videoName;
-
-            string videoFileName = downloadPath + videoName + ".data";
-            string audioFileName = downloadPath + videoName + ".mp3";
-
-            file.status = DownloadStatus.Downloading;
-
-            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
-            {
-                await videoStream.CopyToAsync(fileStream);
-            }
-
-            file.status = DownloadStatus.Converting;
-            await Task.Factory.StartNew(() => { new FFMpegConverter().ConvertMedia(videoFileName, audioFileName, "mp3"); } );
-            File.Delete(videoFileName);
-
-            file.status = DownloadStatus.Completed;
-        };
-
-        public static readonly SavingHandler Video = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
-        {
-            var videoName = file.videoName;
-            var videoExtension = file.videoHandle.FileExtension;
-
-            string videoFileName = downloadPath + videoName + videoExtension;
-
-            file.status = DownloadStatus.Downloading;
-
-            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
-            {
-                await videoStream.CopyToAsync(fileStream);
-            }
-
-            file.status = DownloadStatus.Completed;
-        };
-
         public enum DownloadStatus
         {
             Waiting,
@@ -65,7 +26,7 @@ namespace YouTubeFileDownloaderApi
 
         internal readonly string videoName;
         internal readonly string fileUrl;
-        internal readonly SavingHandler DoSave;
+        internal readonly SaveHandler DoSave;
         internal readonly YouTubeVideo videoHandle;
         private DownloadStatus m_status;
         public DownloadStatus status {
@@ -80,12 +41,14 @@ namespace YouTubeFileDownloaderApi
             }
         }
 
-        public DownloadableFile(string fileUrl, SavingHandler downloadType)
+        public DownloadableFile(string fileUrl, SaveHandler downloadType)
         {
             if (!fileUrl.Contains(urlRequirement))
             {
                 throw new SystemException("In order to download the file, it must come from YouTube");
             }
+
+            Console.WriteLine(fileUrl);
 
             videoHandle = YouTube.Default.GetVideo(fileUrl);
 
@@ -117,7 +80,7 @@ namespace YouTubeFileDownloaderApi
             {
                 if (Application.OpenForms.Count > 0)
                 {
-                    var form = Application.OpenForms[0];
+                    var form = Application.OpenForms[0]; // Need to fix this
                     form.Invoke(new Action(() => PropertyChanged(this, new PropertyChangedEventArgs(info))));
                 }
 
