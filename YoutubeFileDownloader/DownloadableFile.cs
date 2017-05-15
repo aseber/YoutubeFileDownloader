@@ -1,11 +1,12 @@
-﻿using NReco.VideoConverter;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using VideoLibrary;
-using static YouTubeFileDownloaderApi.SaveHandlerFactory;
+using YoutubeExplode;
+using YoutubeExplode.Models;
+using YoutubeExplode.Models.MediaStreams;
+using static YouTubeFileDownloaderApi.AsyncSaveHandlerFactory;
 
 namespace YouTubeFileDownloaderApi
 {
@@ -20,14 +21,30 @@ namespace YouTubeFileDownloaderApi
             Failed
         }
 
-        private const string urlRequirement = "www.youtube.com";
+        private readonly static YoutubeClient youtubeClient = new YoutubeClient();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal readonly string videoName;
-        internal readonly string fileUrl;
-        internal readonly SaveHandler DoSave;
-        internal readonly YouTubeVideo videoHandle;
+        internal readonly AsyncSaveHandler DoAsyncSave;
+        internal readonly string videoId;
+
+        private VideoInfo m_videoHandle;
+        internal VideoInfo videoHandle {
+            get
+            {
+                if (m_videoHandle == null)
+                {
+                    m_videoHandle = youtubeClient.GetVideoInfoAsync(videoId).Result;
+                    NotifyPropertyChanged("status");
+                }
+
+                return m_videoHandle;
+            }
+            private set
+            {
+                m_videoHandle = value;
+            }
+        }
         private DownloadStatus m_status;
         public DownloadStatus status {
             get
@@ -41,35 +58,41 @@ namespace YouTubeFileDownloaderApi
             }
         }
 
-        public DownloadableFile(string fileUrl, SaveHandler downloadType)
+        public DownloadableFile(string url, AsyncSaveHandler downloadType)
         {
-            if (!fileUrl.Contains(urlRequirement))
+            var videoId = string.Empty;
+
+            if (!YoutubeClient.TryParseVideoId(url, out videoId) | !youtubeClient.CheckVideoExistsAsync(videoId).Result)
             {
                 throw new SystemException("In order to download the file, it must come from YouTube");
             }
 
-            Console.WriteLine(fileUrl);
-
-            videoHandle = YouTube.Default.GetVideo(fileUrl);
-
-            videoName = GetVideoName(videoHandle);
-            this.fileUrl = fileUrl;
-            DoSave = downloadType;
+            this.videoId = videoId;
+            DoAsyncSave = downloadType;
             status = DownloadStatus.Waiting;
+        }
+
+        public Task<MediaStream> GetStreamAsync(MediaStreamInfo info)
+        {
+            return youtubeClient.GetMediaStreamAsync(info);
         }
 
         public override string ToString()
         {
-            return videoName + " (" + status + ")";
+            return GetVideoName() + " (" + status + ")";
         }
 
-        private string GetVideoName(YouTubeVideo video)
+        public string GetVideoName()
         {
-            string fullVideoName = video.Title;
+            if (m_videoHandle == null)
+            {
+                return "<unknown title>";
+            }
+
+            string fullVideoName = videoHandle.Title;
 
             fullVideoName = string.Join("�", fullVideoName.Split(Path.GetInvalidFileNameChars()));
             fullVideoName = string.Join("�", fullVideoName.Split(Path.GetInvalidPathChars()));
-            // Add more to this to clean up the file name!
 
             return fullVideoName;
         }
@@ -83,17 +106,6 @@ namespace YouTubeFileDownloaderApi
                     var form = Application.OpenForms[0]; // Need to fix this
                     form.Invoke(new Action(() => PropertyChanged(this, new PropertyChangedEventArgs(info))));
                 }
-
-                /*var context = SynchronizationContext.Current ?? new SynchronizationContext();
-
-                                context.Send(s => PropertyChanged(this, new PropertyChangedEventArgs(info)), null);
-
-                                var asyncOp = AsyncOperationManager.CreateOperation(null);
-                                asyncOp.Post(() => PropertyChanged(this, new PropertyChangedEventArgs("")), PropertyChanged.Target);
-
-                                /*() => { PropertyChanged(this, new PropertyChangedEventArgs("")); }*/
-
-                //((BindingList<DownloadableFile>) PropertyChanged.Target)./*something here to get the form*/.Invoke(new Action(() => PropertyChanged(this, new PropertyChangedEventArgs(""))));
             }
         }
     }

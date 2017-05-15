@@ -87,25 +87,16 @@ namespace YouTubeFileDownloaderApi
 
         public async Task DoDownload(DownloadableFile file)
         {
-            var url = file.fileUrl;
-            var videoName = file.videoName;
             downloadIndex++;
 
             try
             {
-                file.status = DownloadableFile.DownloadStatus.Downloading;
-
-                //using (var videoStream = await file.videoHandle.StreamAsync()) // I would like to use this method, but StreamAsync currently doesn't work.
-                using (var videoStream = new MemoryStream(await file.videoHandle.GetBytesAsync()))
-                {
-                    await file.DoSave(file, videoStream, downloadPath);
-                }
-                
+                await file.DoAsyncSave(file, downloadPath);
                 return;
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine($"Download failed ({downloadIndex}) ({videoName}) - {e.GetType()}");
+                Console.Error.WriteLine($"Download failed ({downloadIndex}) ({file.GetVideoName()}) - {e.GetType()}");
             }
 
             file.status = DownloadableFile.DownloadStatus.Failed;

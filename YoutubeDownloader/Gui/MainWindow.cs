@@ -67,7 +67,7 @@ namespace YouTubeDownloader.Gui
 
             try
             {
-                file = new DownloadableFile(url, SaveHandlerFactory.GetInstance().GetAudioSaveHandler());
+                file = new DownloadableFile(url, AsyncSaveHandlerFactory.GetInstance().GetAudioSaveHandler());
             }
             catch (SystemException)
             {

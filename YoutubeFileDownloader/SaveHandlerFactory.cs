@@ -9,62 +9,73 @@ using static YouTubeFileDownloaderApi.DownloadableFile;
 
 namespace YouTubeFileDownloaderApi
 {
-    public class SaveHandlerFactory
+    public class AsyncSaveHandlerFactory
     {
-        private static SaveHandlerFactory singleton = new SaveHandlerFactory();
+        private static AsyncSaveHandlerFactory singleton = new AsyncSaveHandlerFactory();
 
-        private SaveHandlerFactory() { }
+        private AsyncSaveHandlerFactory() { }
 
-        public static SaveHandlerFactory GetInstance()
+        public static AsyncSaveHandlerFactory GetInstance()
         {
             return singleton;
         }
 
-        public SaveHandler GetAudioSaveHandler()
+        public AsyncSaveHandler GetAudioSaveHandler()
         {
             return AudioHandler;
         }
 
-        public SaveHandler GetVideoSaveHandler()
+        public AsyncSaveHandler GetVideoSaveHandler()
         {
             return VideoHandler;
         }
 
-        public delegate Task SaveHandler(DownloadableFile file, Stream videoStream, string downloadPath);
+        public delegate Task AsyncSaveHandler(DownloadableFile file, string downloadPath);
 
-        private static readonly SaveHandler AudioHandler = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
+        private static readonly AsyncSaveHandler AudioHandler = async (DownloadableFile file, string downloadPath) =>
         {
-            var videoName = file.videoName;
+            var streamInfo = file.videoHandle.AudioStreams.OrderBy(s => s.Bitrate).Last();
 
-            string videoFileName = downloadPath + videoName + ".data";
-            string audioFileName = downloadPath + videoName + ".mp3";
+            var fileName = file.GetVideoName();
+            string fileExtension = streamInfo.Container.ToString();
+
+            string intermediateFileName = downloadPath + fileName + "." + fileExtension;
+            string finalFileName = downloadPath + fileName + ".mp3";
 
             file.status = DownloadStatus.Downloading;
 
-            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
+            using (var inputStream = await file.GetStreamAsync(streamInfo))
             {
-                await videoStream.CopyToAsync(fileStream);
+                using (var fileStream = new FileStream(intermediateFileName, FileMode.Create, FileAccess.Write))
+                {
+                    await inputStream.CopyToAsync(fileStream);
+                }
             }
 
             file.status = DownloadStatus.Converting;
-            await Task.Factory.StartNew(() => { new FFMpegConverter().ConvertMedia(videoFileName, audioFileName, "mp3"); });
-            File.Delete(videoFileName);
+            await Task.Factory.StartNew(() => { new FFMpegConverter().ConvertMedia(intermediateFileName, finalFileName, "mp3"); });
+            File.Delete(intermediateFileName);
 
             file.status = DownloadStatus.Completed;
         };
 
-        private static readonly SaveHandler VideoHandler = async (DownloadableFile file, Stream videoStream, string downloadPath) =>
+        private static readonly AsyncSaveHandler VideoHandler = async (DownloadableFile file, string downloadPath) =>
         {
-            var videoName = file.videoName;
-            var videoExtension = file.videoHandle.FileExtension;
+            var streamInfo = file.videoHandle.MixedStreams.OrderBy(s => s.VideoQuality).Last();
 
-            string videoFileName = downloadPath + videoName + videoExtension;
+            var fileName = file.GetVideoName();
+            string fileExtension = streamInfo.Container.ToString();
+
+            string finalFileName = downloadPath + fileName + "." + fileExtension;
 
             file.status = DownloadStatus.Downloading;
 
-            using (var fileStream = new FileStream(videoFileName, FileMode.Create, FileAccess.Write))
+            using (var inputStream = await file.GetStreamAsync(streamInfo))
             {
-                await videoStream.CopyToAsync(fileStream);
+                using (var fileStream = new FileStream(finalFileName, FileMode.Create, FileAccess.Write))
+                {
+                    await inputStream.CopyToAsync(fileStream);
+                }
             }
 
             file.status = DownloadStatus.Completed;
